@@ -10,33 +10,65 @@ import UIKit
 
 class hospitalTableViewController: UITableViewController {
     
-    var ippsArray = [IPPS]()
+    var urlStr = String()
     var citySelection = String()
-    
     var hospitalArray = [String]()
     var medparArrayByHospitalSelected = [IPPS]()
+    let indicator = UIActivityIndicatorView(style: .whiteLarge)
     
-
     override func viewDidLoad() {
         super.viewDidLoad()
         self.navigationItem.title = citySelection
-
-        // Clear all objects before looking a other cities
-        //self.hospitalArray.removeAll()
+        indicator.color = UIColor.black
+        indicator.center = self.view.center
+        indicator.hidesWhenStopped = true
+        indicator.startAnimating()
+        self.view.addSubview(indicator)
         
-        for item in ippsArray{
-            self.hospitalArray.append(item.name)
-        }
-        self.hospitalArray = Array(Set(self.hospitalArray))
-        self.hospitalArray.sort()
         // Uncomment the following line to preserve selection between presentations
         // self.clearsSelectionOnViewWillAppear = false
 
         // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
         // self.navigationItem.rightBarButtonItem = self.editButtonItem
+        
+        let url = URL(string: urlStr)!
+        
+        DispatchQueue.global(qos: .userInitiated).async {
+            URLSession.shared.dataTask(with: url) { (data, response, error) in
+                if error != nil {
+                    print(error!)
+                } else {
+                    print("error is null")
+                }
+                
+                guard let mime = response?.mimeType, mime == "application/json" else {
+                    print("Wrong MIME type!")
+                    return
+                }
+                
+                guard let data = data else {return}
+                
+                do {
+                    let medpar = try
+                        JSONDecoder().decode([IPPS].self, from: data)
+                    
+                    for item in medpar{
+                        self.hospitalArray.append(item.name)
+                        self.medparArrayByHospitalSelected.append(item)
+                    }
+                    self.hospitalArray = Array(Set(self.hospitalArray))
+                    self.hospitalArray.sort()
+                } catch {
+                    print("JSON error: \(error.localizedDescription)")
+                }
+                DispatchQueue.main.async {
+                    self.tableView.reloadData()
+                    self.indicator.stopAnimating()
+                    self.indicator.removeFromSuperview()
+                }
+            }.resume()
+        }
     }
-
-    // MARK: - Table view data source
 
     override func numberOfSections(in tableView: UITableView) -> Int {
         // #warning Incomplete implementation, return the number of sections
@@ -52,10 +84,11 @@ class hospitalTableViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "hospitals", for: indexPath)
         
+        cell.textLabel?.numberOfLines = 0;
+        cell.textLabel?.lineBreakMode = NSLineBreakMode.byWordWrapping
         cell.textLabel?.text = hospitalArray[indexPath.row]
         
         return cell
-        
     }
 
 
@@ -94,9 +127,6 @@ class hospitalTableViewController: UITableViewController {
     }
     */
 
-    
-    // MARK: - Navigation
-
     // In a storyboard-based application, you will often want to do a little preparation before navigation
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         // Get the new view controller using segue.destination.
@@ -106,19 +136,6 @@ class hospitalTableViewController: UITableViewController {
         
         // Pass the selected object to the new view controller.
         let index = tableView.indexPathForSelectedRow?.row
-        
-        //print(sortedKeys)
-        print(hospitalArray[index!])
-        
-        // Remove all items in case this is not the first city we are  looking at
-       // self.medparArrayByCitySelected.removeAll()
-        
-        for item in ippsArray{
-            if (item.name == hospitalArray[index!]){
-                self.medparArrayByHospitalSelected.append(item)
-            }
-        }
-        
         destController.ippsArray = self.medparArrayByHospitalSelected
         destController.hospitalSelection = hospitalArray[index!]
     }

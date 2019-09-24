@@ -10,23 +10,34 @@ import UIKit
 
 class paymentsTableViewController: UITableViewController {
     
+    var address = String()
+    var city = String()
+    var state = String()
+    var zipcode = String()
+    var region = String()
+    var procedure = String()
     var totalDischarges = Int()
     var avgCoveredCharge = Float()
     var avgTotalPayments = Float()
     var avgMedicarePayments = Float()
     var hospitalSelection = String()
-
     
     override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
         
         switch (section) {
         case 0:
-            return "Total Discharges"
+            return "Address"
         case 1:
-            return "Average Covered Charge"
+            return "Region"
         case 2:
-            return "Average Total Payments"
+            return "Procedure"
         case 3:
+            return "Total Discharges"
+        case 4:
+            return "Average Covered Charge"
+        case 5:
+            return "Average Total Payments"
+        case 6:
             return "Average Medicare Payments"
         default:
             return "error in label"
@@ -45,32 +56,46 @@ class paymentsTableViewController: UITableViewController {
         // self.navigationItem.rightBarButtonItem = self.editButtonItem
     }
 
-    // MARK: - Table view data source
-
     override func numberOfSections(in tableView: UITableView) -> Int {
         // #warning Incomplete implementation, return the number of sections
-        return 4
+        return 7
     }
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         // #warning Incomplete implementation, return the number of rows
         return 1
     }
-
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "payments", for: indexPath)
 
+        let formatter = NumberFormatter()
+        formatter.currencyCode = "USD"
+        formatter.currencySymbol = "$"
+        formatter.maximumFractionDigits = 2
+        formatter.numberStyle = .currencyAccounting
+        
+        cell.textLabel?.numberOfLines = 0;
+        cell.textLabel?.lineBreakMode = NSLineBreakMode.byWordWrapping
         
         switch (indexPath.section) {
         case 0:
-            cell.textLabel?.text = String(totalDischarges)
+            cell.textLabel?.text = String("\(address)\n \(city), \(state), \(zipcode)")
         case 1:
-            cell.textLabel?.text = String(avgCoveredCharge)
+            cell.textLabel?.text = String(region)
         case 2:
-            cell.textLabel?.text = String(avgTotalPayments)
+            cell.textLabel?.text = String(procedure)
         case 3:
-            cell.textLabel?.text = String(avgMedicarePayments)
+            cell.textLabel?.text = String(totalDischarges)
+        case 4:
+            //cell.textLabel?.text = String(format: "%.2f", avgCoveredCharge)
+            cell.textLabel?.text = formatter.string(from: NSNumber(value: avgCoveredCharge))
+        case 5:
+            //cell.textLabel?.text = String(format: "%.2f", avgTotalPayments)
+            cell.textLabel?.text = formatter.string(from: NSNumber(value: avgTotalPayments))
+        case 6:
+            //cell.textLabel?.text = String(format: "%.2f", avgMedicarePayments)
+            cell.textLabel?.text = formatter.string(from: NSNumber(value: avgMedicarePayments))
         default:
             cell.textLabel?.text = "error"
         }
@@ -78,8 +103,6 @@ class paymentsTableViewController: UITableViewController {
         return cell
     }
     
- 
-
     /*
     // Override to support conditional editing of the table view.
     override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
@@ -116,7 +139,6 @@ class paymentsTableViewController: UITableViewController {
     */
 
     /*
-    // MARK: - Navigation
 
     // In a storyboard-based application, you will often want to do a little preparation before navigation
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
@@ -124,5 +146,4 @@ class paymentsTableViewController: UITableViewController {
         // Pass the selected object to the new view controller.
     }
     */
-
 }

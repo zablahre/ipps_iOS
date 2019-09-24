@@ -41,17 +41,16 @@ class procedureTableViewController: UITableViewController {
         return 1
     }
 
-    
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         // #warning Incomplete implementation, return the number of rows
         return self.procedureArray.count
     }
- 
-
-    
+     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "procedure", for: indexPath)
 
+        cell.textLabel?.numberOfLines = 0;
+        cell.textLabel?.lineBreakMode = NSLineBreakMode.byWordWrapping
         cell.textLabel?.text = procedureArray[indexPath.row]
 
         return cell
@@ -93,9 +92,6 @@ class procedureTableViewController: UITableViewController {
     }
     */
 
-    
-    // MARK: - Navigation
-
     // In a storyboard-based application, you will often want to do a little preparation before navigation
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         // Get the new view controller using segue.destination.
@@ -107,6 +103,12 @@ class procedureTableViewController: UITableViewController {
         
         for item in ippsArray{
             if (item.drgdef == procedureArray[index!]){
+                destController.address = item.address
+                destController.city = item.city
+                destController.state = item.state
+                destController.zipcode = item.zipcode
+                destController.region = item.region
+                destController.procedure = item.drgdef
                 destController.totalDischarges = item.totaldischarges
                 destController.avgCoveredCharge = item.avgcoveredcharge
                 destController.avgTotalPayments = item.avgtotalpayments

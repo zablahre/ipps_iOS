@@ -64,9 +64,6 @@ class stateTableViewController: UITableViewController {
     var sortedKeys = [String]()
     var sortedVals = [String]()
     
-    override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-        return "Select your home state"
-    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -92,7 +89,8 @@ class stateTableViewController: UITableViewController {
         return 1
     }
 
-    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int
+    {
         // #warning Incomplete implementation, return the number of rows
         return statesDictionary.count
     }
@@ -150,11 +148,7 @@ class stateTableViewController: UITableViewController {
         let destController: cityTableViewController = segue.destination as! cityTableViewController
         
         // Pass the selected object to the new view controller.
-        let index = tableView.indexPathForSelectedRow?.row
-        
-        //print(sortedKeys)
-        print(sortedVals[index!])
-            
+        let index = tableView.indexPathForSelectedRow?.row            
         destController.urlStr = "https://www.base2.tech/ipps/\(sortedVals[index!])"
         destController.stateSelection = sortedVals[index!]
     }

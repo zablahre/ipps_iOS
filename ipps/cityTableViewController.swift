@@ -15,66 +15,69 @@ struct Location: Decodable {
 
 class cityTableViewController: UITableViewController {
     
- 
-    
     var urlStr = String()
+    var modURLStr = String()
     var stateSelection = String()
-
-    var medparArray = [IPPS]()
     var medparArrayByCitySelected = [IPPS]()
     var citiesArray = [String]()
-    
+    let indicator = UIActivityIndicatorView(style: .whiteLarge)
+
     override func viewDidLoad() {
         super.viewDidLoad()
         self.navigationItem.title = stateSelection
-
-        // Uncomment the following line to preserve selection between presentations
+        
+        indicator.color = UIColor.black
+        indicator.center = self.view.center
+        indicator.hidesWhenStopped = true
+        indicator.startAnimating()
+        self.view.addSubview(indicator)
+        
+         // Uncomment the following line to preserve selection between presentations
         // self.clearsSelectionOnViewWillAppear = false
 
         // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
         // self.navigationItem.rightBarButtonItem = self.editButtonItem
         
         let url = URL(string: urlStr)!
-        URLSession.shared.dataTask(with: url) { (data, response, error) in
-            //            print(data!)
-            //            print(response!)
-            
-            if error != nil {
-                print(error!)
-            } else {
-                print("error is null")
-            }
-            
-            guard let mime = response?.mimeType, mime == "application/json" else {
-                print("Wrong MIME type!")
-                return
-            }
-            
-            guard let data = data else {return}
-            
-            do {
-                let medpar = try
-                    JSONDecoder().decode([IPPS].self, from: data)
-
-                for item in medpar{
-                    self.citiesArray.append(item.city)
-                    self.medparArray.append(item)
+        
+        DispatchQueue.global(qos: .userInitiated).async {
+            URLSession.shared.dataTask(with: url) { (data, response, error) in
+                if error != nil {
+                    print(error!)
+                } else {
+                    print("error is null")
                 }
-                self.citiesArray = Array(Set(self.citiesArray))
-                self.citiesArray.sort()
                 
+                guard let mime = response?.mimeType, mime == "application/json" else {
+                    print("Wrong MIME type!")
+                    return
+                }
                 
-            } catch {
-                print("JSON error: \(error.localizedDescription)")
-            }
-            DispatchQueue.main.async {
-                self.tableView.reloadData()
-            }
+                guard let data = data else {return}
+                
+                do {
+                    let medpar = try
+                        JSONDecoder().decode([Location].self, from: data)
+
+                    for item in medpar{
+                        self.citiesArray.append(item.city)
+                    }
+                    self.citiesArray = Array(Set(self.citiesArray))
+                    self.citiesArray.sort()
+                } catch {
+                    print("JSON error: \(error.localizedDescription)")
+                }
+                
+                DispatchQueue.main.async {
+                    self.tableView.reloadData()
+                    self.indicator.stopAnimating()
+                    self.indicator.removeFromSuperview()
+                }
             }.resume()
+            
+
+        }
     }
-
-    // MARK: - Table view data source
-
     override func numberOfSections(in tableView: UITableView) -> Int {
         // #warning Incomplete implementation, return the number of sections
         return 1
@@ -129,9 +132,6 @@ class cityTableViewController: UITableViewController {
     }
     */
 
-    
-    // MARK: - Navigation
-
     // In a storyboard-based application, you will often want to do a little preparation before navigation
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         // Get the new view controller using segue.destination.
@@ -140,21 +140,11 @@ class cityTableViewController: UITableViewController {
         // Pass the selected object to the new view controller.
         let index = tableView.indexPathForSelectedRow?.row
         
-        //print(sortedKeys)
-        print(citiesArray[index!])
-        
         // Remove all items in case this is not the first city we are  looking at
         self.medparArrayByCitySelected.removeAll()
         
-        for item in medparArray{
-            if (item.city == citiesArray[index!]){
-               self.medparArrayByCitySelected.append(item)
-            }
-        }
-        
-        destController.ippsArray = self.medparArrayByCitySelected
         destController.citySelection = citiesArray[index!]
+        modURLStr = "https://www.base2.tech/ipps/\(stateSelection)/\(citiesArray[index!])"
+        destController.urlStr = modURLStr.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)!
     }
- 
-
 }
