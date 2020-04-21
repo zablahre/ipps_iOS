@@ -21,6 +21,62 @@ class cityTableViewController: UITableViewController {
     var medparArrayByCitySelected = [IPPS]()
     var citiesArray = [String]()
     let indicator = UIActivityIndicatorView(style: .whiteLarge)
+    
+
+    func startLoad() {
+        let url = URL(string: urlStr)!
+        let task = URLSession.shared.dataTask(with: url) { data, response, error in
+            if error != nil {
+                DispatchQueue.main.async {
+                     let alert = UIAlertController(title: "Client Error", message: "Please try again later.", preferredStyle: .alert)
+                     alert.addAction(UIAlertAction(title: NSLocalizedString("OK", comment: "Default action"), style: .default, handler: { _ in
+                     NSLog("The \"OK\" alert occured.")
+                     }))
+                     self.present(alert, animated: true, completion: nil)
+                 }
+                return
+            }
+            guard let httpResponse = response as? HTTPURLResponse,
+                (200...299).contains(httpResponse.statusCode) else {
+                    DispatchQueue.main.async {
+                         let alert = UIAlertController(title: "Server Error", message: "Please try again later.", preferredStyle: .alert)
+                         alert.addAction(UIAlertAction(title: NSLocalizedString("OK", comment: "Default action"), style: .default, handler: { _ in
+                         NSLog("The \"OK\" alert occured.")
+                         }))
+                         self.present(alert, animated: true, completion: nil)
+                     }
+                return
+            }
+            guard let mime = response?.mimeType, mime == "application/json" else {
+                print("Wrong MIME type!")
+                return
+            }
+            
+            guard let data = data else {return}
+            
+            do {
+                let medpar = try
+                    JSONDecoder().decode([Location].self, from: data)
+
+                for item in medpar{
+                    self.citiesArray.append(item.city)
+                }
+                self.citiesArray = Array(Set(self.citiesArray))
+                self.citiesArray.sort()
+            } catch {
+                print("JSON error: \(error.localizedDescription)")
+            }
+            
+            DispatchQueue.main.async {
+                self.tableView.reloadData()
+                self.indicator.stopAnimating()
+                self.indicator.removeFromSuperview()
+            }
+        }
+        task.resume()
+    }
+
+
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -32,51 +88,8 @@ class cityTableViewController: UITableViewController {
         indicator.startAnimating()
         self.view.addSubview(indicator)
         
-         // Uncomment the following line to preserve selection between presentations
-        // self.clearsSelectionOnViewWillAppear = false
-
-        // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
-        // self.navigationItem.rightBarButtonItem = self.editButtonItem
         
-        let url = URL(string: urlStr)!
-        
-        DispatchQueue.global(qos: .userInitiated).async {
-            URLSession.shared.dataTask(with: url) { (data, response, error) in
-                if error != nil {
-                    print(error!)
-                } else {
-                    print("error is null")
-                }
-                
-                guard let mime = response?.mimeType, mime == "application/json" else {
-                    print("Wrong MIME type!")
-                    return
-                }
-                
-                guard let data = data else {return}
-                
-                do {
-                    let medpar = try
-                        JSONDecoder().decode([Location].self, from: data)
-
-                    for item in medpar{
-                        self.citiesArray.append(item.city)
-                    }
-                    self.citiesArray = Array(Set(self.citiesArray))
-                    self.citiesArray.sort()
-                } catch {
-                    print("JSON error: \(error.localizedDescription)")
-                }
-                
-                DispatchQueue.main.async {
-                    self.tableView.reloadData()
-                    self.indicator.stopAnimating()
-                    self.indicator.removeFromSuperview()
-                }
-            }.resume()
-            
-
-        }
+        startLoad()
     }
     override func numberOfSections(in tableView: UITableView) -> Int {
         // #warning Incomplete implementation, return the number of sections
