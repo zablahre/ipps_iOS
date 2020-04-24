@@ -157,7 +157,12 @@ class cityTableViewController: UITableViewController {
         self.medparArrayByCitySelected.removeAll()
         
         destController.citySelection = citiesArray[index!]
+        
+        // Used to emulate a broken server/service - ipps is not included in url
+        // that is being passed to the destination controller. So the URL is not found.
         modURLStr = "https://www.base2.tech/ipps/\(stateSelection)/\(citiesArray[index!])"
+        //modURLStr = "https://www.base2.tech/\(stateSelection)/\(citiesArray[index!])"
+        
         destController.urlStr = modURLStr.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)!
     }
 }
