@@ -149,7 +149,13 @@ class stateTableViewController: UITableViewController {
         
         // Pass the selected object to the new view controller.
         let index = tableView.indexPathForSelectedRow?.row            
+        
+        
+        // Used to emulate a broken server/service - ipps is not included in url
+        // that is being passed to the destination controller. So the URL is not found.
         destController.urlStr = "https://www.base2.tech/ipps/\(sortedVals[index!])"
+        //destController.urlStr = "https://www.base2.tech/\(sortedVals[index!])"
+        
         destController.stateSelection = sortedVals[index!]
     }
 }
