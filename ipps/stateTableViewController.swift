@@ -153,7 +153,6 @@ class stateTableViewController: UITableViewController {
         
         // Used to emulate a broken server/service - ipps is not included in url
         // that is being passed to the destination controller. So the URL is not found.
-        //test to validate github
         destController.urlStr = "https://www.base2.tech/ipps/\(sortedVals[index!])"
         //destController.urlStr = "https://www.base2.tech/\(sortedVals[index!])"
         
